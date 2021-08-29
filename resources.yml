@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: | 
+  Resource Stack
+Resources:
+###
+# Custom Resource Setup
+###
+  CustomResourcePreprocess:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: ./custom_resource_preprocess/template.out.yml
+
+  CustomResourcePostprocess:
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: ./custom_resource_postprocess/template.out.yml
+##
+# Resource Provisioning  
+##
+  Preprocess:
+    DependsOn: [ CustomResourcePreprocess ]
+    Type: Custom::Preprocess
+    Properties: 
+      ServiceToken: !GetAtt CustomResourcePreprocess.Outputs.FunctionArn
+    
+  Example:
+    DependsOn: [ Preprocess ]
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: ./example.out.yml
+
+  Postprocess:
+    DependsOn: [ CustomResourcePostprocess, Example ]
+    Type: Custom::Postprocess
+    Properties: 
+      ServiceToken: !GetAtt CustomResourcePostprocess.Outputs.FunctionArn
+
+Outputs:
+  PreprocessMessage:
+    Value: !GetAtt Preprocess.Message
+  ExampleMessage: 
+    Value: !GetAtt Example.Outputs.Message
+  PostprocessMessage:
+    Value: !GetAtt Postprocess.Message

@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+#Project Files
+*.out.yml
+**/package
+.DS_Store
